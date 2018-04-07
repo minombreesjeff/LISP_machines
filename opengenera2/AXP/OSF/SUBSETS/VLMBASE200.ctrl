@@ -1,0 +1,6 @@
+NAME='Open Genera VLMBASE200'
+DESC='Open Genera 2.0 Base Software'
+NVOLS=1:0
+MTLOC=1:1
+DEPS="."
+FLAGS=0

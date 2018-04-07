@@ -1,0 +1,49 @@
+This release of Open Genera contains a new Quick Start installation
+Guide, which is available in this directory in two formats:
+
+  quickstart.ps     --  a postscript file
+  quickstart.text   --  a plain text file
+
+This document, as well as the full installation and user's guides, are
+also available for viewing with the Document Examiner Genera application.
+
+Quick installation reminder:
+
+;;To delete Open Genera 1.0
+  setld -d VLMBASE100
+
+;;To install Open Genera 2.0 (use your CD-ROM device number in place of 4)
+  mount -t cdfs -o noversion /dev/rz4c /cdrom
+  /cdrom/axp/osf/installgenera
+  umount /cdrom
+
+;;Sample .VLM file contents (should go in homedir, provides defaults)
+   genera.virtualMemory: 500
+   genera.main.geometry: 1280x1022-0-0
+   genera.world: /usr/opt/VLM200/lib/symbolics/Genera-8-5.vlod
+   genera.network: foo-vlm
+
+;;genera command has lots of options, but minimum to run genera is
+
+   genera -network <host>
+
+ if your network doesn't use subnetting and
+
+   genera -network "<host>;mask=255.255.255.0;gateway=<gw-host>"
+ 
+ if it does.
+
+;;To read on-line doc (<select> is F1 on PC keyboard)
+  mount -t cdfs -o rrip /dev/rz4c /cdrom
+  genera -network <vlm-name>
+  (si:login-to-sys-host)
+  (fs:set-logical-pathname-host "SYS"
+    :translations '(("**;*.*" "dis-emb-host:/cdrom/sys.sct/**/*.*")))
+  <select>D
+
+;;To see keyboard key mappings in Genera
+  :show x keyboard mapping
+
+;;To enable who-calls
+  (si:enable-who-calls :all-remake)
+

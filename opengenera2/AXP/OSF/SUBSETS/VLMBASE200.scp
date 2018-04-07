@@ -1,0 +1,132 @@
+#! /sbin/sh
+
+# Subset Control Program
+
+ProductName="Open Genera"
+ProductCode=VLM
+SubsetCode=BASE
+SubsetVers=200
+SubSet=VLMBASE200
+SubSetDesc="Open Genera Base Software"
+RootRO=usr/opt/VLM200
+RootRW=var/opt/VLM200
+
+# Include dependency routines
+
+. /usr/share/lib/shell/libscp
+
+# The ACT environment is set accordingly by setld
+
+case $ACT in
+  M)				# $1 == -l (subset load) or -x
+    # Checks for machine compatible with machine(1) values.
+    STL_ArchAssert alpha || {
+	echo "
+	The $SubSetDesc only runs on Digital's Alpha AXP architecture.
+	" >&2
+
+	exit 1
+	}
+    ;;
+
+  PRE_L)			# after menu, before load
+    STL_DepInit			# initialize dependency checking
+
+    # Check dependencies on other kits.  Coded in this painful way
+    # in anticipation of adding future dependency checks.
+    STL_DepEval OSFBASE??? || {
+	oops="$oops
+	OSF Base System"
+	}
+
+    [ "$oops" ] && {
+	echo "
+	The $SubSetDesc requires the existence of the following uninstalled
+	subset(s):
+	$oops
+
+	Please install these subsets before retrying the $Subset installation
+	" >&2
+	
+	exit 1
+	}
+    ;;
+
+  POST_L)			# after subset load
+    # lock subsets, but we don't lock OSFBASE130 (& similiar) subsets.
+    ;;
+
+  C)				# $1 == INSTALL or DELETE
+    case $1 in
+	INSTALL)
+	    for i in `ls $RootRO/bin`; do
+		ln -s ../../$RootRO/bin/$i usr/bin/$i 
+	    done
+	    for i in `ls $RootRO/lib`; do
+		ln -s ../../$RootRO/lib/$i usr/lib/$i 
+	    done
+	    for i in `ls $RootRO/include`; do
+		ln -s ../../$RootRO/include/$i usr/include/$i 
+	    done
+	    for i in `ls $RootRO/fonts`; do
+		ln -s ../../../../$RootRO/fonts/$i usr/lib/X11/fonts/$i 
+	    done
+	    [ -d var/lib ] || mkdir var/lib
+	    for i in `ls $RootRW/lib`; do
+		ln -s ../../$RootRW/lib/$i var/lib/$i 
+	    done
+	
+	    # Copy the Symbolics init file, which must be edited.
+	    cp -p $RootRO/init.d/SymbolicsVLM /sbin/init.d
+	
+	    # Create a link in the appropriate init directory to
+	    # the preceeding init file.
+	    ln -s /sbin/init.d/SymbolicsVLM /sbin/rc3.d/S96SymbolicsVLM
+
+	    # Insert a command into Xsession
+	    /sbin/sh $RootRO/install/xsession-insert
+
+	    # Edit the Symbolics system startup script (SymbolicsVLM)
+	    /sbin/sh $RootRO/install/edit-startup
+	;;
+
+	DELETE)
+	    for i in `ls $RootRO/bin`; do
+		rm usr/bin/$i 
+	    done
+	    for i in `ls $RootRO/include`; do
+		rm usr/include/$i 
+	    done
+	    for i in `ls $RootRO/lib`; do
+		rm usr/lib/$i 
+	    done
+	    for i in `ls $RootRO/fonts`; do
+		rm usr/lib/X11/fonts/$i 
+	    done
+	    for i in `ls $RootRW/lib`; do
+		rm var/lib/$i 
+	    done
+	
+	    # Remove init.d entities
+	    rm /sbin/init.d/SymbolicsVLM
+	    rm /sbin/rc3.d/S96SymbolicsVLM
+
+	    # Remove the xset for genera from Xsession
+	    /sbin/sh $RootRO/install/xsession-remove
+	;;
+    esac			# end case $1 for $ACT == C
+    ;;
+
+  PRE_D)			# before deleting subset, reverse POST_L
+    ;;
+
+  POST_D)			# after deleting subset, reverse PRE_L
+    ;;
+
+  V)				# subset verification
+    ;;
+
+esac
+
+exit 0				# Subset Contrl Program success
+

@@ -1,0 +1,31 @@
+#! /sbin/sh
+
+# Setup a temporary directory that will allow us to setld from an ISO volume
+
+Source=`dirname $0`
+test $Source = . && Source=`pwd`
+
+Target="/tmp/VLM.`date +%y%m%d`"
+
+test -d $Target && mv $Target $Target.old
+mkdir $Target
+mkdir $Target/instctrl
+
+ln -s $Source/instctrl $Target/INSTCTRL
+ln -s $Source/vlm.image $Target/VLM.image
+ln -s $Source/vlmbase200 $Target/VLMBASE200
+ln -s $Source/subsets/vlm.image $Target/instctrl/VLM.image
+ln -s $Source/subsets/vlm200.comp $Target/instctrl/VLM200.comp
+ln -s $Source/subsets/vlmbase200.ctrl $Target/instctrl/VLMBASE200.ctrl
+ln -s $Source/subsets/vlmbase200.inv $Target/instctrl/VLMBASE200.inv
+ln -s $Source/subsets/vlmbase200.scp $Target/instctrl/VLMBASE200.scp
+
+/usr/sbin/setld -l $Target
+
+rm $Target/instctrl/*
+rmdir $Target/instctrl
+rm $Target/*
+rmdir $Target
+test -d $Target.old && mv $Target.old $Target
+
+exit 0
